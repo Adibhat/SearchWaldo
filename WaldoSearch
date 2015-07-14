@@ -1,0 +1,30 @@
+import cv2
+import numpy as np
+
+
+def templateMatching(puzzle):
+    waldo = cv2.imread("/home/aditya/Developer/WhereIsWaldo/Sample/Waldo.png")
+    (waldoHeight, waldoWidth) = waldo.shape[:2]
+    result = cv2.matchTemplate(puzzle, waldo, cv2.TM_CCOEFF)
+    (_, _, minLoc, maxLoc) = cv2.minMaxLoc(result)
+
+    # Mask size
+    topLeft = maxLoc
+    bottomRight = ((topLeft[0] + waldoWidth), (topLeft[1] + waldoHeight))
+
+    # Region of interest
+    roi = puzzle[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]]
+
+    # Make it transparent and dark (slightly)
+    mask = np.zeros(puzzle.shape, dtype="uint8")
+    puzzle = cv2.addWeighted(puzzle, 0.25, mask, 0.75, 0)
+
+    # Put region of interest back on the image
+    puzzle[topLeft[1]:bottomRight[1], topLeft[0]:bottomRight[0]] = roi
+    return puzzle
+
+
+puzzle = cv2.imread("/home/aditya/Developer/WhereIsWaldo/TestData/Waldo.jpg")
+
+# Perform template matching and save resulting output
+cv2.imwrite("/home/aditya/Developer/WhereIsWaldo/result.jpg", templateMatching(puzzle))
